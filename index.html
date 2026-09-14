@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>My Term V Schedule</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Term V">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fbfaf7">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231c1b19'/%3E%3Ctext x='50' y='62' font-size='40' text-anchor='middle' fill='%23fbfaf7' font-family='sans-serif'%3ETV%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --ink:#1c1b19;
+    --ink-soft:#6b6862;
+    --line:#e4e0d8;
+    --paper:#fbfaf7;
+    --card:#ffffff;
+    --accent:#a4501f;
+    --accent-soft:#f3e3d6;
+    --good:#2f6d4f;
+    --good-soft:#e2efe7;
+    --bad:#a32d2d;
+    --bad-soft:#f7dede;
+  }
+  *{box-sizing:border-box;}
+  html{
+    -webkit-text-size-adjust:100%;
+  }
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    padding-bottom:calc(60px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior-y:none;
+  }
+  header{
+    padding:calc(20px + env(safe-area-inset-top)) 16px 0;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+  h1{
+    font-size:19px;
+    margin:0 0 2px;
+    font-weight:600;
+    letter-spacing:-0.2px;
+  }
+  .sub{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+  }
+  .tabs{
+    display:flex;
+    gap:4px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 0;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink-soft);
+    border-bottom:2px solid transparent;
+  }
+  .tab.active{
+    color:var(--ink);
+    border-bottom-color:var(--ink);
+  }
+  .filters{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding:12px 16px 0;
+    -webkit-overflow-scrolling:touch;
+  }
+  .chip{
+    flex:0 0 auto;
+    padding:7px 12px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-size:13px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .chip.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:#fff;
+  }
+  .next-card{
+    margin:16px;
+    padding:14px 16px;
+    border-radius:14px;
+    background:var(--accent-soft);
+    border:1px solid #e6c8ab;
+  }
+  .next-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--accent);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .next-title{
+    font-size:16px;
+    font-weight:600;
+    margin-bottom:2px;
+  }
+  .next-meta{
+    font-size:13px;
+    color:#7a4224;
+  }
+  main{
+    padding:4px 16px 16px;
+  }
+  .daygroup{
+    margin-top:18px;
+  }
+  .day-head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin-bottom:8px;
+    padding-left:2px;
+  }
+  .day-name{
+    font-size:14px;
+    font-weight:600;
+  }
+  .day-date{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .today-tag{
+    font-size:10px;
+    background:var(--accent);
+    color:#fff;
+    padding:2px 6px;
+    border-radius:6px;
+    font-weight:600;
+  }
+  .class-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .class-card.cancelled{
+    opacity:0.55;
+  }
+  .dot{
+    width:8px;height:8px;border-radius:50%;flex:0 0 auto;
+  }
+  .class-info{flex:1;min-width:0;}
+  .class-title{
+    font-size:14.5px;
+    font-weight:600;
+    margin-bottom:2px;
+  }
+  .class-title.strike{
+    text-decoration:line-through;
+    color:var(--ink-soft);
+  }
+  .class-meta{
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .room-tag{
+    display:inline-block;
+    font-size:11px;
+    color:var(--ink-soft);
+    background:#f2f0ea;
+    padding:1px 6px;
+    border-radius:6px;
+    margin-top:3px;
+  }
+  .time-badge{
+    font-size:12.5px;
+    font-weight:600;
+    padding:5px 8px;
+    border-radius:8px;
+    background:#f2f0ea;
+    white-space:nowrap;
+    flex:0 0 auto;
+  }
+  .time-badge.edited{
+    background:var(--accent-soft);
+    color:var(--accent);
+  }
+  .edit-btn{
+    flex:0 0 auto;
+    width:30px;height:30px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-size:13px;
+    color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .empty{
+    text-align:center;
+    padding:40px 16px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(20,18,14,0.4);
+    display:none;align-items:flex-end;justify-content:center;z-index:20;
+  }
+  .modal-bg.open{display:flex;}
+  .modal{
+    background:var(--card);
+    width:100%;max-width:480px;
+    border-radius:18px 18px 0 0;
+    padding:18px 18px 26px;
+  }
+  .modal h3{margin:0 0 4px;font-size:16px;}
+  .modal .mm{font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:5px;}
+  .field input, .field select{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;
+    font-size:14px;background:var(--paper);color:var(--ink);
+  }
+  .modal-actions{display:flex;gap:8px;margin-top:16px;}
+  .btn{
+    flex:1;padding:10px;border-radius:9px;border:1px solid var(--line);
+    background:var(--card);font-size:14px;font-weight:600;color:var(--ink);
+  }
+  .btn.primary{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .btn.danger{color:#a32d2d;}
+  .legend{
+    display:flex;gap:14px;padding:0 16px 6px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap;
+  }
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .legend .dot{width:7px;height:7px;}
+
+  .att-summary{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+    padding:14px 16px 4px;
+  }
+  .att-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+  }
+  .att-card .name{
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .att-card .pct{
+    font-size:22px;
+    font-weight:600;
+    margin-bottom:2px;
+  }
+  .att-card .pct.low{color:var(--bad);}
+  .att-card .pct.ok{color:var(--good);}
+  .att-card .count{
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .att-row{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .att-row .class-info{flex:1;min-width:0;}
+  .att-btns{
+    display:flex;
+    gap:6px;
+    flex:0 0 auto;
+  }
+  .att-btn{
+    width:34px;height:34px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);
+  }
+  .att-btn.present.on{background:var(--good-soft);border-color:var(--good);color:var(--good);}
+  .att-btn.absent.on{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);}
+
+  .mess-days{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding:12px 16px 0;
+    -webkit-overflow-scrolling:touch;
+  }
+  .mess-day-chip{
+    flex:0 0 auto;
+    padding:8px 13px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-size:13px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .mess-day-chip.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:#fff;
+  }
+  .meal-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .meal-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .meal-name{
+    font-size:14.5px;
+    font-weight:600;
+  }
+  .meal-time{
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .meal-items{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .sick-note{
+    margin:6px 16px 16px;
+    padding:12px 14px;
+    border-radius:12px;
+    background:#f2f0ea;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.55;
+  }
+  .sick-note b{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>My Term V</h1>
+  <div class="sub">Section A · LR 02 · Agentic AI · Entrepreneurship &amp; New Ventures · TQM &amp; Six Sigma · Growth Strategies for E-Commerce · Manufacturing System Design · Markstrat Simulation</div>
+  <div class="tabs">
+    <div class="tab active" data-tab="schedule">Schedule</div>
+    <div class="tab" data-tab="attendance">Attendance</div>
+    <div class="tab" data-tab="mess">Mess</div>
+  </div>
+</header>
+
+<div id="scheduleTab">
+  <div class="filters" id="filters"></div>
+  <div class="legend" id="legend"></div>
+  <div id="nextWrap"></div>
+  <main id="main"></main>
+</div>
+
+<div id="attendanceTab" style="display:none;">
+  <div class="filters" id="attFilters"></div>
+  <div class="att-summary" id="attSummary"></div>
+  <main id="attMain"></main>
+</div>
+
+<div id="messTab" style="display:none;">
+  <div class="mess-days" id="messDays"></div>
+  <main id="messMain"></main>
+  <div class="sick-note"><b>Sick menu</b> — Veg Khichdi, Boiled Potato. Prepared for lunch and dinner on demand only; request at least 2 hours before meal timings. Food isn't to be taken outside the dining hall; only authorised staff deliver to sick/quarantine students.</div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Edit class</h3>
+    <div class="mm" id="modalMeta"></div>
+    <div class="field">
+      <label>Time</label>
+      <input type="text" id="editTime" placeholder="e.g. 16:05-17:20">
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select id="editStatus">
+        <option value="normal">Scheduled</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Note (optional)</label>
+      <input type="text" id="editNote" placeholder="e.g. moved to room 204">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="resetBtn">Reset</button>
+      <button class="btn primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const RAW = [{"date": "2026-09-12", "section": "A", "time": "16:05-17:20", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 1, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-12", "section": "A", "time": "19:15-20:30", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 1, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-09-12", "section": "A", "time": "20:50-22:05", "subject": "Agentic AI for Business", "abb": "AAB", "session": 1, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-14", "section": "A", "time": "08:45-10:00", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 2, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-14", "section": "A", "time": "16:05-17:20", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 2, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-09-14", "section": "A", "time": "17:40-18:55", "subject": "Agentic AI for Business", "abb": "AAB", "session": 2, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-14", "section": "A", "time": "20:50-22:05", "subject": "Markstrat Simulation", "abb": "MSS", "session": 1, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-09-15", "section": "A", "time": "17:40-18:55", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 1, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-09-15", "section": "A", "time": "20:50-22:05", "subject": "Manufacturing System Design", "abb": "MSD", "session": 1, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-09-16", "section": "A", "time": "08:45-10:00", "subject": "Markstrat Simulation", "abb": "MSS", "session": 2, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-09-16", "section": "A", "time": "19:15-20:30", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 3, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-16", "section": "A", "time": "20:50-22:05", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 3, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-09-16", "section": "A", "time": "22:25-23:40", "subject": "Agentic AI for Business", "abb": "AAB", "session": 3, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-17", "section": "A", "time": "08:45-10:00", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 2, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-09-17", "section": "A", "time": "17:40-18:55", "subject": "Markstrat Simulation", "abb": "MSS", "session": 3, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-09-18", "section": "A", "time": "14:30-15:45", "subject": "Agentic AI for Business", "abb": "AAB", "session": 4, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-18", "section": "A", "time": "22:25-23:40", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 4, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-09-19", "section": "A", "time": "14:30-15:45", "subject": "Manufacturing System Design", "abb": "MSD", "session": 2, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-09-19", "section": "A", "time": "16:05-17:20", "subject": "Markstrat Simulation", "abb": "MSS", "session": 4, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-09-19", "section": "A", "time": "20:50-22:05", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 4, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-21", "section": "A", "time": "08:45-10:00", "subject": "Markstrat Simulation", "abb": "MSS", "session": 5, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-09-21", "section": "A", "time": "19:15-20:30", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 5, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-22", "section": "A", "time": "08:45-10:00", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 5, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-09-22", "section": "A", "time": "14:30-15:45", "subject": "Agentic AI for Business", "abb": "AAB", "session": 5, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-22", "section": "A", "time": "20:50-22:05", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 6, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-23", "section": "A", "time": "08:45-10:00", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 7, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-24", "section": "A", "time": "19:15-20:30", "subject": "Agentic AI for Business", "abb": "AAB", "session": 6, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-25", "section": "A", "time": "14:30-15:45", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 6, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-09-25", "section": "A", "time": "20:50-22:05", "subject": "Markstrat Simulation", "abb": "MSS", "session": 6, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-09-25", "section": "A", "time": "22:25-23:40", "subject": "Manufacturing System Design", "abb": "MSD", "session": 3, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-09-26", "section": "A", "time": "16:05-17:20", "subject": "Agentic AI for Business", "abb": "AAB", "session": 7, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-26", "section": "A", "time": "20:50-22:05", "subject": "Manufacturing System Design", "abb": "MSD", "session": 4, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-09-28", "section": "A", "time": "14:30-15:45", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 3, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-09-29", "section": "A", "time": "08:45-10:00", "subject": "Agentic AI for Business", "abb": "AAB", "session": 8, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-09-29", "section": "A", "time": "14:30-15:45", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 8, "faculty": "Dr. C.P. Garg"}, {"date": "2026-09-29", "section": "A", "time": "17:40-18:55", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 7, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-09-29", "section": "A", "time": "19:15-20:30", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 4, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-09-29", "section": "A", "time": "20:50-22:05", "subject": "Manufacturing System Design", "abb": "MSD", "session": 5, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-09-30", "section": "A", "time": "20:50-22:05", "subject": "Markstrat Simulation", "abb": "MSS", "session": 7, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-01", "section": "A", "time": "16:05-17:20", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 9, "faculty": "Dr. C.P. Garg"}, {"date": "2026-10-03", "section": "A", "time": "16:05-17:20", "subject": "Markstrat Simulation", "abb": "MSS", "session": 8, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-05", "section": "A", "time": "14:30-15:45", "subject": "Markstrat Simulation", "abb": "MSS", "session": 9, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-05", "section": "A", "time": "16:05-17:20", "subject": "Agentic AI for Business", "abb": "AAB", "session": 9, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-06", "section": "A", "time": "14:30-15:45", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 5, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-06", "section": "A", "time": "16:05-17:20", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 8, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-07", "section": "A", "time": "17:40-18:55", "subject": "Manufacturing System Design", "abb": "MSD", "session": 6, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-10-08", "section": "A", "time": "14:30-15:45", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 10, "faculty": "Dr. C.P. Garg"}, {"date": "2026-10-08", "section": "A", "time": "19:15-20:30", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 6, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-09", "section": "A", "time": "08:45-10:00", "subject": "Markstrat Simulation", "abb": "MSS", "session": 10, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-09", "section": "A", "time": "16:05-17:20", "subject": "Agentic AI for Business", "abb": "AAB", "session": 10, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-10", "section": "A", "time": "08:45-10:00", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 9, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-10", "section": "A", "time": "17:40-18:55", "subject": "Manufacturing System Design", "abb": "MSD", "session": 7, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-10-12", "section": "A", "time": "14:30-15:45", "subject": "Markstrat Simulation", "abb": "MSS", "session": 11, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-12", "section": "A", "time": "20:50-22:05", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 11, "faculty": "Dr. C.P. Garg"}, {"date": "2026-10-13", "section": "A", "time": "08:45-10:00", "subject": "Agentic AI for Business", "abb": "AAB", "session": 11, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-13", "section": "A", "time": "19:15-20:30", "subject": "Manufacturing System Design", "abb": "MSD", "session": 8, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-10-14", "section": "A", "time": "14:30-15:45", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 10, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-14", "section": "A", "time": "17:40-18:55", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 7, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-15", "section": "A", "time": "14:30-15:45", "subject": "Markstrat Simulation", "abb": "MSS", "session": 12, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-15", "section": "A", "time": "17:40-18:55", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 12, "faculty": "Dr. C.P. Garg"}, {"date": "2026-10-16", "section": "A", "time": "08:45-10:00", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 11, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-16", "section": "A", "time": "14:30-15:45", "subject": "Manufacturing System Design", "abb": "MSD", "session": 9, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-10-16", "section": "A", "time": "19:15-20:30", "subject": "Agentic AI for Business", "abb": "AAB", "session": 12, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-17", "section": "A", "time": "16:05-17:20", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 8, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-17", "section": "A", "time": "17:40-18:55", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 13, "faculty": "Dr. C.P. Garg"}, {"date": "2026-10-19", "section": "A", "time": "08:45-10:00", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 12, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-19", "section": "A", "time": "16:05-17:20", "subject": "Agentic AI for Business", "abb": "AAB", "session": 13, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-19", "section": "A", "time": "19:15-20:30", "subject": "Markstrat Simulation", "abb": "MSS", "session": 13, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-19", "section": "A", "time": "20:50-22:05", "subject": "Manufacturing System Design", "abb": "MSD", "session": 10, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-10-21", "section": "A", "time": "20:50-22:05", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 14, "faculty": "Dr. C.P. Garg"}, {"date": "2026-10-22", "section": "A", "time": "16:05-17:20", "subject": "Markstrat Simulation", "abb": "MSS", "session": 14, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-22", "section": "A", "time": "17:40-18:55", "subject": "Agentic AI for Business", "abb": "AAB", "session": 14, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-23", "section": "A", "time": "16:05-17:20", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 9, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-23", "section": "A", "time": "17:40-18:55", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 13, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-24", "section": "A", "time": "22:25-23:40", "subject": "Markstrat Simulation", "abb": "MSS", "session": 15, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-26", "section": "A", "time": "08:45-10:00", "subject": "Manufacturing System Design", "abb": "MSD", "session": 11, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-10-26", "section": "A", "time": "17:40-18:55", "subject": "Agentic AI for Business", "abb": "AAB", "session": 15, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-26", "section": "A", "time": "22:25-23:40", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 10, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-27", "section": "A", "time": "17:40-18:55", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 15, "faculty": "Dr. C.P. Garg"}, {"date": "2026-10-27", "section": "A", "time": "20:50-22:05", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 14, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-28", "section": "A", "time": "14:30-15:45", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 11, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-28", "section": "A", "time": "17:40-18:55", "subject": "Manufacturing System Design", "abb": "MSD", "session": 12, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-10-28", "section": "A", "time": "20:50-22:05", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 12, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-10-29", "section": "A", "time": "14:30-15:45", "subject": "Agentic AI for Business", "abb": "AAB", "session": 16, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-10-29", "section": "A", "time": "16:05-17:20", "subject": "Markstrat Simulation", "abb": "MSS", "session": 16, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-10-30", "section": "A", "time": "16:05-17:20", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 15, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-10-31", "section": "A", "time": "20:50-22:05", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 13, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-11-02", "section": "A", "time": "14:30-15:45", "subject": "Markstrat Simulation", "abb": "MSS", "session": 17, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-11-02", "section": "A", "time": "20:50-22:05", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 16, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-11-02", "section": "A", "time": "22:25-23:40", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 14, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-11-03", "section": "A", "time": "14:30-15:45", "subject": "Manufacturing System Design", "abb": "MSD", "session": 13, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-03", "section": "A", "time": "17:40-18:55", "subject": "Agentic AI for Business", "abb": "AAB", "session": 17, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-11-04", "section": "A", "time": "14:30-15:45", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 16, "faculty": "Dr. C.P. Garg"}, {"date": "2026-11-05", "section": "A", "time": "14:30-15:45", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 15, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-11-05", "section": "A", "time": "16:05-17:20", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 17, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-11-05", "section": "A", "time": "17:40-18:55", "subject": "Markstrat Simulation", "abb": "MSS", "session": 18, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-11-06", "section": "A", "time": "14:30-15:45", "subject": "Manufacturing System Design", "abb": "MSD", "session": 14, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-13", "section": "A", "time": "08:45-10:00", "subject": "Agentic AI for Business", "abb": "AAB", "session": 18, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-11-14", "section": "A", "time": "08:45-10:00", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 16, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-11-14", "section": "A", "time": "16:05-17:20", "subject": "Manufacturing System Design", "abb": "MSD", "session": 15, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-14", "section": "A", "time": "22:25-23:40", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 17, "faculty": "Dr. C.P. Garg"}, {"date": "2026-11-17", "section": "A", "time": "20:50-22:05", "subject": "Manufacturing System Design", "abb": "MSD", "session": 16, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-18", "section": "A", "time": "17:40-18:55", "subject": "Markstrat Simulation", "abb": "MSS", "session": 19, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-11-19", "section": "A", "time": "08:45-10:00", "subject": "Manufacturing System Design", "abb": "MSD", "session": 17, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-19", "section": "A", "time": "17:40-18:55", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 18, "faculty": "Dr. C.P. Garg"}, {"date": "2026-11-19", "section": "A", "time": "19:15-20:30", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 18, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-11-20", "section": "A", "time": "14:30-15:45", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 17, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-11-21", "section": "A", "time": "22:25-23:40", "subject": "Agentic AI for Business", "abb": "AAB", "session": 19, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-11-23", "section": "A", "time": "14:30-15:45", "subject": "Markstrat Simulation", "abb": "MSS", "session": 20, "faculty": "Dr. Abhishek Yadav / team"}, {"date": "2026-11-23", "section": "A", "time": "17:40-18:55", "subject": "Manufacturing System Design", "abb": "MSD", "session": 18, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-23", "section": "A", "time": "20:50-22:05", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 18, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-11-23", "section": "A", "time": "22:25-23:40", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 19, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-11-25", "section": "A", "time": "14:30-15:45", "subject": "Manufacturing System Design", "abb": "MSD", "session": 19, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-25", "section": "A", "time": "20:50-22:05", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 19, "faculty": "Dr. C.P. Garg"}, {"date": "2026-11-26", "section": "A", "time": "08:45-10:00", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 19, "faculty": "Dr. Rubina Chakma"}, {"date": "2026-11-26", "section": "A", "time": "20:50-22:05", "subject": "Agentic AI for Business", "abb": "AAB", "session": 20, "faculty": "Dr. Anurag Kulshrestha"}, {"date": "2026-11-27", "section": "A", "time": "14:30-15:45", "subject": "Total Quality Management & Six Sigma", "abb": "TQMS", "session": 20, "faculty": "Dr. C.P. Garg"}, {"date": "2026-11-27", "section": "A", "time": "16:05-17:20", "subject": "Growth Strategies for E-Commerce", "abb": "GSEC", "session": 20, "faculty": "Dr. Ashwani Kumar"}, {"date": "2026-11-28", "section": "A", "time": "14:30-15:45", "subject": "Manufacturing System Design", "abb": "MSD", "session": 20, "faculty": "Dr. Anurag Tiwari"}, {"date": "2026-11-30", "section": "A", "time": "19:15-20:30", "subject": "Entrepreneurship and New Ventures", "abb": "ENV", "session": 20, "faculty": "Dr. Rubina Chakma"}];
+const ROOM = 'LR 02';
+
+const SUBJECTS = {
+  AAB:  {name:'Agentic AI for Business', color:'#378ADD'},
+  ENV:  {name:'Entrepreneurship and New Ventures', color:'#D85A30'},
+  TQMS: {name:'Total Quality Management & Six Sigma', color:'#639922'},
+  GSEC: {name:'Growth Strategies for E-Commerce', color:'#D4537E'},
+  MSD:  {name:'Manufacturing System Design', color:'#7F77DD'},
+  MSS:  {name:'Markstrat Simulation', color:'#0F6E56'}
+};
+
+const data = RAW.filter(r => r.section === 'A');
+
+const MESS = {
+  Monday: {
+    Breakfast: ['Tea, Coffee, Milk, Bournvita','Brown Bread, Butter, Jam','Cornflakes','Banana','Bhurji','Uttapam','Sambhar + Coconut Chutney'],
+    Lunch: ['Daal Tadka','Aaloo Matar Sabzi','Jeera Rice','Plain Dahi','Methi Puri','Green Salad'],
+    Snacks: ['Tea, Coffee, Milk, Bournvita','Bread, Butter, Jam','Aaloo Pakode','Ketchup + Mint Chutney'],
+    Dinner: ['Masoor Dal Fry','Chicken Do Pyaza','Paneer Lababdar','Tawa Pulao','Roti','Green Salad','Fruit Custard']
+  },
+  Tuesday: {
+    Breakfast: ['Tea, Coffee, Milk, Bournvita','Brown Bread, Butter, Jam','Chocos','Fruit Chat - 1 Bowl','Boiled eggs','Aloo Pyaz Paratha','Curd + Pickle'],
+    Lunch: ['Kadhi Pakoda','Aaloo Jeera','Jeera Rice','Cucumber & Mint Raita','Roti','Kachumbar Salad'],
+    Snacks: ['Tea, Coffee, Milk, Bournvita','Bread, Butter, Jam','Chowmein/Maggi','Ketchup'],
+    Dinner: ['Lehsuni Dal','Aaloo Kaala Channa','Jeera Rice','Roti','Green Salad','Sewaiyan/Kheer']
+  },
+  Wednesday: {
+    Breakfast: ['Tea, Coffee, Milk, Bournvita','Brown Bread, Butter, Jam','Chocos','Banana','Masala Omelette','Vada','Sambhar + Coconut Chutney'],
+    Lunch: ['Amritsari Chole','Plain Rice','Chaach','Bhature','Green Salad'],
+    Snacks: ['Tea, Coffee, Milk, Bournvita','Bread, Butter, Jam','Poha','Mint Chutney'],
+    Dinner: ['Urad Dal','Chicken Do Pyaza','Paneer Lababdar','Tawa Pulao','Roti','Green Salad','Besan Barfi/Boondi']
+  },
+  Thursday: {
+    Breakfast: ['Tea, Coffee, Milk, Bournvita','Brown Bread, Butter, Jam','Cornflakes','Papaya','Boiled eggs','Plain Paratha','Matar Sabzi'],
+    Lunch: ['Mixed Dal','Dum Aaloo','Plain Rice','Boondi Raita','Roti','Boiled Chana Salad'],
+    Snacks: ['Tea, Coffee, Milk, Bournvita','Bread, Butter, Jam','Pasta','Ketchup'],
+    Dinner: ['Daal Palak','Baigan Aloo','Plain Rice','Roti','Green Salad','Vanilla/Strawberry Icecream']
+  },
+  Friday: {
+    Breakfast: ['Tea, Coffee, Milk, Bournvita','Brown Bread, Butter, Jam','Chocos','Banana','Omelette','Poha','Lemon'],
+    Lunch: ['Arhar Dal','Chicken Chilly','Fried Rice','Pineapple Raita','Roti','Kachumbar Salad'],
+    Snacks: ['Tea, Coffee, Milk, Bournvita','Bread, Butter, Jam','Pav Bhaji','Lemon'],
+    Dinner: ['Masoor Dal Fry','Aloo Soyabean','Matar Pulao','Roti','Green Salad','Jalebi']
+  },
+  Saturday: {
+    Breakfast: ['Tea, Coffee, Milk, Bournvita','Brown Bread, Butter, Jam','Chocos','Papaya','Bhurji','Aloo Pyaz Paratha','Curd + Pickle'],
+    Lunch: ['Rajma','Veg Manchurian','Lauki Sabji','Plain Rice','Dahi Vada','Roti','Green Salad'],
+    Snacks: ['Tea, Coffee, Milk, Bournvita','Bread Pakode','Ketchup + Mint Chutney'],
+    Dinner: ['Urad Dal','Matar Aaloo','Jeera Rice','Roti','Green Salad','Sooji/Moong Dal Halwa']
+  },
+  Sunday: {
+    Breakfast: ['Tea, Coffee, Milk, Bournvita','Brown Bread, Butter, Jam','Cornflakes','Papaya','Boiled eggs','Dosa','Sambhar + Coconut Chutney'],
+    Lunch: ['Toor Dal','Matar Paneer','Chocolate Icecream','Veg Biryani + Chicken Biryani','Mix Veg Raita','Roti','Kachumbar Salad'],
+    Snacks: ['Tea, Coffee, Milk, Bournvita','Samosa/Kachori','Imli Chutney + Mint Chutney'],
+    Dinner: ['Dal Makhani','Capsicum Aaloo','Plain Rice','Roti','Green Salad','Gulab Jamun']
+  }
+};
+const MESS_TIMES = {Breakfast:'', Lunch:'', Snacks:'', Dinner:''};
+const DAY_ORDER = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+let messActiveDay = DAY_ORDER[(new Date().getDay()+6)%7];
+
+let overrides = {};
+let attendance = {};
+let activeFilter = 'ALL';
+let attActiveFilter = 'ALL';
+let editingId = null;
+let currentTab = 'schedule';
+
+function idFor(r){ return r.abb + '-' + r.session + '-' + r.date; }
+
+function dayName(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', {weekday:'long'});
+}
+function fmtDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+async function loadOverrides(){
+  try{
+    const res = await window.storage.list('ovr:');
+    if(res && res.keys){
+      for(const k of res.keys){
+        try{
+          const g = await window.storage.get(k, false);
+          if(g) overrides[k.slice(4)] = JSON.parse(g.value);
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  try{
+    const res2 = await window.storage.list('att:');
+    if(res2 && res2.keys){
+      for(const k of res2.keys){
+        try{
+          const g = await window.storage.get(k, false);
+          if(g) attendance[k.slice(4)] = g.value;
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  render();
+  renderAttendance();
+}
+
+async function saveOverride(id, val){
+  overrides[id] = val;
+  try{ await window.storage.set('ovr:'+id, JSON.stringify(val), false); }catch(e){}
+}
+async function clearOverride(id){
+  delete overrides[id];
+  try{ await window.storage.delete('ovr:'+id, false); }catch(e){}
+}
+async function setAttendance(id, status){
+  if(attendance[id] === status){
+    delete attendance[id];
+    try{ await window.storage.delete('att:'+id, false); }catch(e){}
+  } else {
+    attendance[id] = status;
+    try{ await window.storage.set('att:'+id, status, false); }catch(e){}
+  }
+  renderAttendance();
+}
+
+function buildFilters(){
+  const wrap = document.getElementById('filters');
+  const legend = document.getElementById('legend');
+  let html = `<div class="chip active" data-f="ALL">All subjects</div>`;
+  let leg = '';
+  for(const k in SUBJECTS){
+    html += `<div class="chip" data-f="${k}">${k}</div>`;
+    leg += `<span><span class="dot" style="background:${SUBJECTS[k].color}"></span>${SUBJECTS[k].name}</span>`;
+  }
+  wrap.innerHTML = html;
+  legend.innerHTML = leg;
+  wrap.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      activeFilter = c.dataset.f;
+      wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      render();
+    });
+  });
+
+  const attWrap = document.getElementById('attFilters');
+  let ahtml = `<div class="chip active" data-f="ALL">All subjects</div>`;
+  for(const k in SUBJECTS){
+    ahtml += `<div class="chip" data-f="${k}">${k}</div>`;
+  }
+  attWrap.innerHTML = ahtml;
+  attWrap.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      attActiveFilter = c.dataset.f;
+      attWrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      renderAttendance();
+    });
+  });
+}
+
+function getEffective(r){
+  const id = idFor(r);
+  const ov = overrides[id];
+  return {
+    time: ov && ov.time ? ov.time : r.time,
+    status: ov && ov.status ? ov.status : 'normal',
+    note: ov && ov.note ? ov.note : '',
+    edited: !!(ov && ov.time && ov.time !== r.time)
+  };
+}
+
+function render(){
+  const main = document.getElementById('main');
+  const today = todayStr();
+
+  const filtered = data.filter(r => activeFilter==='ALL' || r.abb===activeFilter);
+
+  const byDate = {};
+  filtered.forEach(r=>{
+    if(!byDate[r.date]) byDate[r.date]=[];
+    byDate[r.date].push(r);
+  });
+  const dates = Object.keys(byDate).sort();
+
+  const upcoming = filtered
+    .map(r=>({r, eff:getEffective(r)}))
+    .filter(x=> x.r.date >= today && x.eff.status !== 'cancelled')
+    .sort((a,b)=> a.r.date.localeCompare(b.r.date) || a.eff.time.localeCompare(b.eff.time));
+
+  const nextWrap = document.getElementById('nextWrap');
+  if(upcoming.length){
+    const n = upcoming[0];
+    nextWrap.innerHTML = `<div class="next-card">
+      <div class="next-label">${n.r.date===today ? 'Next up · today' : 'Next up'}</div>
+      <div class="next-title">${SUBJECTS[n.r.abb].name}</div>
+      <div class="next-meta">${dayName(n.r.date)}, ${fmtDate(n.r.date)} · ${n.eff.time} · ${ROOM} · Session ${n.r.session}</div>
+    </div>`;
+  } else {
+    nextWrap.innerHTML = '';
+  }
+
+  if(dates.length===0){
+    main.innerHTML = '<div class="empty">No classes for this filter.</div>';
+    return;
+  }
+
+  let html = '';
+  dates.forEach(date=>{
+    const items = byDate[date].slice().sort((a,b)=> getEffective(a).time.localeCompare(getEffective(b).time));
+    const isToday = date===today;
+    html += `<div class="daygroup">
+      <div class="day-head">
+        <span class="day-name">${dayName(date)}</span>
+        <span class="day-date">${fmtDate(date)}</span>
+        ${isToday ? '<span class="today-tag">Today</span>' : ''}
+      </div>`;
+    items.forEach(r=>{
+      const eff = getEffective(r);
+      const cancelled = eff.status==='cancelled';
+      const c = SUBJECTS[r.abb].color;
+      html += `<div class="class-card ${cancelled?'cancelled':''}">
+        <div class="dot" style="background:${c}"></div>
+        <div class="class-info">
+          <div class="class-title ${cancelled?'strike':''}">${SUBJECTS[r.abb].name}</div>
+          <div class="class-meta">Session ${r.session} · ${r.faculty}${eff.note ? ' · '+eff.note : ''}</div>
+          <div class="room-tag">${ROOM}</div>
+        </div>
+        <div class="time-badge ${eff.edited?'edited':''}">${cancelled?'Cancelled':eff.time}</div>
+        <div class="edit-btn" data-id="${idFor(r)}" data-abb="${r.abb}" data-date="${r.date}" data-session="${r.session}" data-orig="${r.time}">✎</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  main.innerHTML = html;
+
+  main.querySelectorAll('.edit-btn').forEach(b=>{
+    b.addEventListener('click', ()=> openModal(b.dataset));
+  });
+}
+
+function renderAttendance(){
+  const today = todayStr();
+  const summaryWrap = document.getElementById('attSummary');
+  const mainWrap = document.getElementById('attMain');
+
+  const filtered = data.filter(r => attActiveFilter==='ALL' || r.abb===attActiveFilter);
+
+  let sHtml = '';
+  const subjKeys = attActiveFilter==='ALL' ? Object.keys(SUBJECTS) : [attActiveFilter];
+  subjKeys.forEach(k=>{
+    const subjClasses = data.filter(r=>r.abb===k && r.date <= today);
+    let present=0, absent=0;
+    subjClasses.forEach(r=>{
+      const st = attendance[idFor(r)];
+      if(st==='present') present++;
+      else if(st==='absent') absent++;
+    });
+    const marked = present+absent;
+    const pct = marked>0 ? Math.round((present/marked)*100) : null;
+    sHtml += `<div class="att-card">
+      <div class="name">${k}</div>
+      <div class="pct ${pct===null?'':(pct<75?'low':'ok')}">${pct===null?'—':pct+'%'}</div>
+      <div class="count">${present} present · ${absent} absent · ${subjClasses.length-marked} unmarked</div>
+    </div>`;
+  });
+  summaryWrap.innerHTML = sHtml;
+
+  const upToToday = filtered.filter(r=>r.date<=today).sort((a,b)=> b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+
+  if(upToToday.length===0){
+    mainWrap.innerHTML = '<div class="empty">No sessions to mark yet.</div>';
+    return;
+  }
+
+  const byDate = {};
+  upToToday.forEach(r=>{
+    if(!byDate[r.date]) byDate[r.date]=[];
+    byDate[r.date].push(r);
+  });
+  const dates = Object.keys(byDate).sort().reverse();
+
+  let html = '';
+  dates.forEach(date=>{
+    const items = byDate[date];
+    html += `<div class="daygroup">
+      <div class="day-head">
+        <span class="day-name">${dayName(date)}</span>
+        <span class="day-date">${fmtDate(date)}</span>
+        ${date===today?'<span class="today-tag">Today</span>':''}
+      </div>`;
+    items.forEach(r=>{
+      const id = idFor(r);
+      const st = attendance[id];
+      const c = SUBJECTS[r.abb].color;
+      html += `<div class="att-row">
+        <div class="dot" style="background:${c}"></div>
+        <div class="class-info">
+          <div class="class-title">${SUBJECTS[r.abb].name}</div>
+          <div class="class-meta">Session ${r.session} · ${r.time}</div>
+        </div>
+        <div class="att-btns">
+          <div class="att-btn present ${st==='present'?'on':''}" data-id="${id}" data-status="present">P</div>
+          <div class="att-btn absent ${st==='absent'?'on':''}" data-id="${id}" data-status="absent">A</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  mainWrap.innerHTML = html;
+
+  mainWrap.querySelectorAll('.att-btn').forEach(b=>{
+    b.addEventListener('click', ()=> setAttendance(b.dataset.id, b.dataset.status));
+  });
+}
+
+function buildMessDays(){
+  const wrap = document.getElementById('messDays');
+  const todayName = DAY_ORDER[(new Date().getDay()+6)%7];
+  wrap.innerHTML = DAY_ORDER.map(d=>
+    `<div class="mess-day-chip ${d===messActiveDay?'active':''}" data-d="${d}">${d.slice(0,3)}${d===todayName?' · today':''}</div>`
+  ).join('');
+  wrap.querySelectorAll('.mess-day-chip').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      messActiveDay = c.dataset.d;
+      renderMess();
+    });
+  });
+}
+
+function renderMess(){
+  const wrap = document.getElementById('messDays');
+  wrap.querySelectorAll('.mess-day-chip').forEach(c=>{
+    c.classList.toggle('active', c.dataset.d===messActiveDay);
+  });
+  const meals = MESS[messActiveDay];
+  const order = ['Breakfast','Lunch','Snacks','Dinner'];
+  let html = '';
+  order.forEach(m=>{
+    html += `<div class="meal-card">
+      <div class="meal-head"><span class="meal-name">${m}</span></div>
+      <div class="meal-items">${meals[m].join(' · ')}</div>
+    </div>`;
+  });
+  document.getElementById('messMain').innerHTML = html;
+}
+
+function openModal(ds){
+  editingId = ds.id;
+  const eff = overrides[ds.id] || {};
+  document.getElementById('modalTitle').textContent = SUBJECTS[ds.abb].name;
+  document.getElementById('modalMeta').textContent = dayName(ds.date)+', '+fmtDate(ds.date)+' · Session '+ds.session+' (original '+ds.orig+')';
+  document.getElementById('editTime').value = eff.time || ds.orig;
+  document.getElementById('editStatus').value = eff.status || 'normal';
+  document.getElementById('editNote').value = eff.note || '';
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalBg').classList.remove('open');
+  editingId = null;
+}
+
+document.getElementById('modalBg').addEventListener('click', (e)=>{
+  if(e.target.id==='modalBg') closeModal();
+});
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const time = document.getElementById('editTime').value.trim();
+  const status = document.getElementById('editStatus').value;
+  const note = document.getElementById('editNote').value.trim();
+  if(!time){
+    document.getElementById('editTime').style.borderColor = '#a32d2d';
+    return;
+  }
+  await saveOverride(editingId, {time, status, note});
+  closeModal();
+  render();
+});
+document.getElementById('resetBtn').addEventListener('click', async ()=>{
+  await clearOverride(editingId);
+  closeModal();
+  render();
+});
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    currentTab = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('scheduleTab').style.display = currentTab==='schedule' ? '' : 'none';
+    document.getElementById('attendanceTab').style.display = currentTab==='attendance' ? '' : 'none';
+    document.getElementById('messTab').style.display = currentTab==='mess' ? '' : 'none';
+  });
+});
+
+buildFilters();
+buildMessDays();
+renderMess();
+loadOverrides();
+</script>
+</body>
+</html>
