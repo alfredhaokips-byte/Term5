@@ -362,7 +362,35 @@
     line-height:1.55;
   }
   .sick-note b{color:var(--ink);}
+
+  .sync-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 2px 12px;
+    font-size:12px;
+  }
+  .sync-status{
+    color:var(--ink-soft);
+    flex:1;
+    min-width:0;
+  }
+  .sync-btn{
+    flex:0 0 auto;
+    padding:7px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--card);
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .sync-btn.syncing{
+    opacity:0.6;
+  }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -373,6 +401,10 @@
     <div class="tab active" data-tab="schedule">Schedule</div>
     <div class="tab" data-tab="attendance">Attendance</div>
     <div class="tab" data-tab="mess">Mess</div>
+  </div>
+  <div class="sync-bar" id="syncBar">
+    <span class="sync-status" id="syncStatus">Not synced with live sheet</span>
+    <button class="sync-btn" id="syncBtn">Sign in &amp; sync</button>
   </div>
 </header>
 
@@ -434,7 +466,128 @@ const SUBJECTS = {
   MSS:  {name:'Markstrat Simulation', color:'#0F6E56'}
 };
 
-const data = RAW.filter(r => r.section === 'A');
+let data = RAW.filter(r => r.section === 'A');
+
+// ---- Live Google Sheets sync ----
+const GOOGLE_CLIENT_ID = '951009823239-2i8onp6gsnbfsr2918tb0va1ue2gs2j4.apps.googleusercontent.com';
+const SHEET_ID = '1KO1bwDTVyirnMFLKpsdDe8y6OiicN-Xju9ytnpnDIFQ';
+const SHEET_GID = 1739917831;
+const SLOTS = ['08:45-10:00','10:20-11:35','11:55-1:10','LUNCH','14:30-15:45','16:05-17:20','17:40-18:55','19:15-20:30','20:50-22:05','22:25-23:40'];
+const TARGET_RE = /^([A-Za-z&]+)\s+(\d+)\s*\(([^)]+)\)/;
+let tokenClient = null;
+
+function excelSerialToISO(serial){
+  // Excel/Sheets epoch: Dec 30 1899 (accounts for the 1900 leap-year bug)
+  const ms = Math.round((serial - 25569) * 86400 * 1000);
+  const d = new Date(ms);
+  return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+}
+
+function setSyncStatus(msg){
+  const el = document.getElementById('syncStatus');
+  if(el) el.textContent = msg;
+}
+
+function initGoogleAuth(){
+  if(!window.google || !google.accounts){ setTimeout(initGoogleAuth, 300); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    callback: async (resp)=>{
+      if(resp.error){ setSyncStatus('Sign-in failed — try again'); return; }
+      await syncFromSheet(resp.access_token);
+    }
+  });
+}
+
+async function syncFromSheet(accessToken){
+  const btn = document.getElementById('syncBtn');
+  btn.classList.add('syncing');
+  setSyncStatus('Syncing with live sheet…');
+  try{
+    const meta = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties`, {
+      headers:{Authorization:'Bearer '+accessToken}
+    }).then(r=>r.json());
+    const sheetInfo = (meta.sheets||[]).find(s=>s.properties.sheetId===SHEET_GID);
+    if(!sheetInfo){ setSyncStatus('Could not find that sheet tab'); btn.classList.remove('syncing'); return; }
+    const title = sheetInfo.properties.title;
+    const range = `'${title}'!A1:AJ400`;
+    const valUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`;
+    const valData = await fetch(valUrl, { headers:{Authorization:'Bearer '+accessToken} }).then(r=>r.json());
+    const rows = valData.values || [];
+    const parsed = parseScheduleRows(rows);
+    if(parsed.length === 0){ setSyncStatus('Synced, but found no matching sessions — check sheet layout'); btn.classList.remove('syncing'); return; }
+    data = parsed;
+    await window.storage.set('sync:data', JSON.stringify(parsed), false);
+    const now = new Date();
+    await window.storage.set('sync:time', now.toISOString(), false);
+    setSyncStatus('Last synced ' + now.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}));
+    render();
+  }catch(e){
+    setSyncStatus('Sync failed — check your connection and try again');
+  }
+  btn.classList.remove('syncing');
+}
+
+function parseScheduleRows(rows){
+  const out = [];
+  let i = 3; // data starts at row 4 (index 3), same as the source workbook
+  const n = rows.length;
+  while(i < n){
+    const r0 = rows[i] || [];
+    const dateVal = r0[0];
+    if(typeof dateVal === 'number'){
+      const block = rows.slice(i, i+4);
+      block.forEach(br=>{
+        if(!br) return;
+        const sect = br[1];
+        if(sect !== 'A') return;
+        for(let k=0;k<SLOTS.length;k++){
+          const cell = br[2+k];
+          if(!cell || typeof cell !== 'string') continue;
+          const m = cell.match(TARGET_RE);
+          if(!m) continue;
+          const abb = m[1];
+          if(!SUBJECTS[abb]) continue;
+          out.push({
+            date: excelSerialToISO(dateVal),
+            section: sect,
+            time: SLOTS[k],
+            subject: SUBJECTS[abb].name,
+            abb: abb,
+            session: parseInt(m[2],10),
+            faculty: (RAW.find(x=>x.abb===abb) || {}).faculty || ''
+          });
+        }
+      });
+      i += 4;
+    } else {
+      i += 1;
+    }
+  }
+  return out;
+}
+
+document.getElementById('syncBtn').addEventListener('click', ()=>{
+  if(!tokenClient){ setSyncStatus('Still loading Google Sign-In…'); return; }
+  tokenClient.requestAccessToken();
+});
+
+(async function initSyncState(){
+  try{
+    const t = await window.storage.get('sync:time', false);
+    const d = await window.storage.get('sync:data', false);
+    if(t && d){
+      const parsed = JSON.parse(d.value);
+      if(parsed.length){
+        data = parsed;
+        const when = new Date(t.value);
+        setSyncStatus('Last synced ' + when.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}));
+      }
+    }
+  }catch(e){}
+})();
+initGoogleAuth();
 
 const MESS = {
   Monday: {
